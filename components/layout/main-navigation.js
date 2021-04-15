@@ -1,38 +1,40 @@
-import Link from 'next/link';
-import { useSession, signOut } from 'next-auth/client';
+import Link from "next/link";
+import { useSession, signOut } from "next-auth/client";
 
-import classes from './main-navigation.module.css';
+import classes from "./main-navigation.module.css";
+import { Fragment } from "react";
 
 function MainNavigation() {
   const [session, loading] = useSession();
-
-  function logoutHandler() {
-    signOut();
+  
+  const signoutHandler = ()=>{
+    signOut()
   }
 
   return (
     <header className={classes.header}>
-      <Link href='/'>
+      <Link href="/">
         <a>
           <div className={classes.logo}>Next Auth</div>
         </a>
       </Link>
       <nav>
         <ul>
-          {!session && !loading && (
+          {(!session && !loading) && (
             <li>
-              <Link href='/auth'>Login</Link>
+              <Link href="/auth">Login</Link>
             </li>
           )}
-          {session && (
-            <li>
-              <Link href='/profile'>Profile</Link>
-            </li>
-          )}
-          {session && (
-            <li>
-              <button onClick={logoutHandler}>Logout</button>
-            </li>
+
+          {(session && !loading) && (
+            <Fragment>
+              <li>
+                <Link href="/profile">Profile</Link>
+              </li>
+              <li>
+                <button onClick={signoutHandler}>Logout</button>
+              </li>
+            </Fragment>
           )}
         </ul>
       </nav>

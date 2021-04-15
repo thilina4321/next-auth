@@ -1,6 +1,7 @@
+import {useRouter} from 'next/router'
 import ProfileForm from './profile-form';
 import classes from './user-profile.module.css';
-
+import {useSession} from 'next-auth/client'
 function UserProfile() {
   // const [isLoading, setIsLoading] = useState(true);
 
@@ -13,12 +14,22 @@ function UserProfile() {
   //     }
   //   });
   // }, []);
+  const router = useRouter()
 
-  // if (isLoading) {
-  //   return <p className={classes.profile}>Loading...</p>;
+  const [session, isLoading] = useSession()
+
+  if (isLoading) {
+    return <p className={classes.profile}>Loading...</p>;
+  }
+  console.log(isLoading);
+  console.log(session);
+
+  // if(session.error == 'null'){
+  //   router.push('/auth')
   // }
 
   async function changePasswordHandler(passwordData) {
+    console.log(passwordData);
     const response = await fetch('/api/user/change-password', {
       method: 'PATCH',
       body: JSON.stringify(passwordData),

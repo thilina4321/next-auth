@@ -30,7 +30,7 @@ export default NextAuth({
                     }
 
                     // set email to the jwt token
-                    return {email}
+                    return {email:user.email}
                     
                 } catch (error) {
                     throw new Error(error.message || 'Something went wrong')

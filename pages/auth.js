@@ -1,25 +1,23 @@
 import { useRouter } from 'next/router';
-import { getSession } from 'next-auth/client';
-import { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/client';
+
 
 import AuthForm from '../components/auth/auth-form';
 
 function AuthPage() {
-  const [isLoading, setIsLoading] = useState(true);
+  
   const router = useRouter();
+  const [session, loading] = useSession()
+  
+  console.log(session);
+  console.log(loading);
 
-  useEffect(() => {
-    getSession().then((session) => {
-      if (session) {
-        router.replace('/');
-      } else {
-        setIsLoading(false);
-      }
-    });
-  }, [router]);
+  if(loading){
+    return <p> Loading..... </p>
+  }
 
-  if (isLoading) {
-    return <p>Loading...</p>;
+  if(session){
+    router.replace('/profile')
   }
 
   return <AuthForm />;

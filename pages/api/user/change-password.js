@@ -1,55 +1,49 @@
-import { getSession } from 'next-auth/client';
+import {getSession} from 'next-auth/client'
+import {connectDb} from '../../../helper/db'
+import {comparePassword, hashPassword} from '../../../helper/hash'
+import User from '../../../model/user'
 
-import { hashPassword, verifyPassword } from '../../../lib/auth';
-import { connectToDatabase } from '../../../lib/db';
-
-async function handler(req, res) {
-  if (req.method !== 'PATCH') {
+const handler = async(req,res)=>{
+  if(req.method != 'PATCH'){
     return;
   }
 
-  const session = await getSession({ req: req });
-
-  if (!session) {
-    res.status(401).json({ message: 'Not authenticated!' });
-    return;
+  const session = await getSession({req:req})
+  console.log(session);
+  if(!session){
+    return res.status(401).send({message:'Not Authenticate'})
   }
 
-  const userEmail = session.user.email;
-  const oldPassword = req.body.oldPassword;
-  const newPassword = req.body.newPassword;
+  const {oldPassword, newPassword} = req.body
+  
 
-  const client = await connectToDatabase();
+  try {
+    await connectDb()
+    const currentEmail = session.user.email
+    
+    const user = await User.findOne({email:currentEmail})
+    console.log(user);
 
-  const usersCollection = client.db().collection('users');
+    if(!user){
+      return res.status(404).send({message:'User not found'})
+    }
 
-  const user = await usersCollection.findOne({ email: userEmail });
+    const isCorrect = await comparePassword(oldPassword,user.password)
+    if(!isCorrect){
+      return res.status(403).send({message:'Please check password again'})
+    }
 
-  if (!user) {
-    res.status(404).json({ message: 'User not found.' });
-    client.close();
-    return;
+    const hashPw = await hashPassword(newPassword)
+    const updatedUser = await User.findByIdAndUpdate(user._id, {password:hashPw},
+       {new:true, runValidators:true})
+
+       console.log(updatedUser);
+
+       res.status(200).send({msg:'updated successfully'})
+    
+  } catch (error) {
+    res.status(500).send({message:error.message || 'something went wrong'})
   }
-
-  const currentPassword = user.password;
-
-  const passwordsAreEqual = await verifyPassword(oldPassword, currentPassword);
-
-  if (!passwordsAreEqual) {
-    res.status(403).json({ message: 'Invalid password.' });
-    client.close();
-    return;
-  }
-
-  const hashedPassword = await hashPassword(newPassword);
-
-  const result = await usersCollection.updateOne(
-    { email: userEmail },
-    { $set: { password: hashedPassword } }
-  );
-
-  client.close();
-  res.status(200).json({ message: 'Password updated!' });
 }
 
-export default handler;
+export default handler
