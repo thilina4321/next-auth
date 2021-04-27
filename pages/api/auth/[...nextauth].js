@@ -4,6 +4,8 @@ import Provider from 'next-auth/providers'
 // database imports
 import {connectDb} from '../../../helper/db'
 import User from '../../../model/user'
+
+// password hash helper
 import {comparePassword} from '../../../helper/hash'
 
 export default NextAuth({
